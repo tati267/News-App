@@ -61,8 +61,8 @@ const newsService = (function () {
   const apiUrl = 'https://news-api-v2.herokuapp.com';
 
   return {
-    topHeadlines(country = 'au', cb) {
-      http.get(`${apiUrl}/top-headlines?country=${country}&apiKey=${apiKey}`,
+    topHeadlines(country = 'au', category = "general", cb) {
+      http.get(`${apiUrl}/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}`,
         cb)
     },
     everything(query, cb) {
@@ -74,6 +74,7 @@ const newsService = (function () {
 // Elements
 const form = document.forms['newsControls'];
 const countrySelect = form.elements['country'];
+const categorySelect = form.elements['category'];
 const searchInput = form.elements['search'];
 
 form.addEventListener('submit', e => {
@@ -92,10 +93,11 @@ function loadNews() {
   showLoader();
 
   const country = countrySelect.value;
+  const category = categorySelect.value;
   const searchText = searchInput.value;
 
   if (!searchText) {
-    newsService.topHeadlines(country, onGetResponse);
+    newsService.topHeadlines(country, category, onGetResponse);
   } else {
     newsService.everything(searchText, onGetResponse);
   }
@@ -111,8 +113,8 @@ function onGetResponse(err, res) {
   }
 
   if (!res.articles.length) {
-    // show empty message
-    return;
+    showAlert('There are no results');
+    return false;
   }
 
   renderNews(res.articles);
@@ -150,7 +152,7 @@ function newsTemplate({ urlToImage, title, url, description }) {
     <div class="col s12">
       <div class="card">
         <div class="card-image">
-          <img src="${urlToImage}">
+          <img src="${urlToImage || './img/img1.jpg'}">
           <span class="card-title">${title || ''}</span>
         </div>
         <div class="card-content">
@@ -185,5 +187,12 @@ function removePreloader() {
   const loader = document.querySelector('.progress');
   if (loader) {
     loader.remove();
+  }
+}
+
+function loadImage(url) {
+  if (!url) {
+    return `
+  <img src="${urlToImage}">`
   }
 }
